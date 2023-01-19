@@ -1,0 +1,18 @@
+#!/usr/bin/expect
+#Usage importhakey.expect <host> <ssh user> <ssh password> <SFTP IP> <sftp user> <sftp password> <peer SN#>
+
+set timeout 60
+
+spawn ssh [lindex $argv 1]@[lindex $argv 0]
+
+expect "yes/no" {
+        send "yes\r"
+        expect "*?assword" { send "[lindex $argv 2]\r" }
+        } "*?assword" { send "[lindex $argv 2]\r" }
+
+expect "> " { send "scp import high-availability-key from [lindex $argv 4]@[lindex $argv 3]:~/HA-key-[lindex $argv 6]\r" }
+expect "yes/no" {
+        send "yes\r"
+        expect ": " { send "[lindex $argv 5]\r" }
+        } ": " { send "[lindex $argv 5]\r" }
+expect "> " { send "exit\r" }
