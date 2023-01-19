@@ -1,0 +1,20 @@
+#/bin/bash
+#Usage panorama_prep <host> <auth tag>
+HOST=$1
+TAG=$2
+
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/network/virtual-wire/entry[@name='default-vwire']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/vsys/entry/rulebase/security/rules/entry[@name='rule1']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/vsys/entry/zone/entry[@name='trust']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/vsys/entry/zone/entry[@name='untrust']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/network/interface/ethernet/entry[@name='ethernet1/1']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/network/interface/ethernet/entry[@name='ethernet1/2']" > /dev/null 2>&1
+
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/network/virtual-router/entry[@name='default']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/network/ike/crypto-profiles" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/network/qos/profile/entry[@name='default']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/deviceconfig/system/update-schedule/threats" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/devices/entry/network/profiles/monitor-profile/entry[@name='default']" > /dev/null 2>&1
+panxapi.py -h $HOST -t $TAG -dx "/config/shared/botnet" > /dev/null 2>&1
+
+panxapi.py -h $HOST -t $TAG -xr --sync -C "<commit></commit>" > /dev/null 2>&1
