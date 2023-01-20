@@ -13,6 +13,6 @@ expect "yes/no" {
 expect "> " { send "scp import high-availability-key from [lindex $argv 4]@[lindex $argv 3]:~/HA-key-[lindex $argv 6]\r" }
 expect "yes/no" {
         send "yes\r"
-        expect ": " { send "[lindex $argv 5]\r" }
-        } ": " { send "[lindex $argv 5]\r" }
+        expect "password: " { send "[lindex $argv 5]\r" }
+        } "password: " { send "[lindex $argv 5]\r" }
 expect "> " { send "exit\r" }
