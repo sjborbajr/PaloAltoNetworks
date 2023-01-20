@@ -6,7 +6,7 @@ PANORAMA=$2
 TAG=$3
 
 #Get serial Number
-FW_SERIAL=$(panxapi.py -t NTX-admin -h $HOST -Xjro "show system info" | jq -r .system.serial)
+FW_SERIAL=$(panxapi.py -t $TAG -h $HOST -Xjro "show system info" | jq -r .system.serial)
 
 #Add Serial number and get authkey
 panxapi.py -t $TAG -h $PANORAMA -S "<entry name='$FW_SERIAL'/>" "/config/mgt-config/devices"
