@@ -1,0 +1,37 @@
+Get serial:
+  easy/dirty
+    panxapi.py -t $TAG -h $HOST -Xjro "show system info" | grep serial
+  need to install jq, cleaner result
+    panxapi.py -t $TAG -h $HOST -Xjro "show system info" | jq -r .system.serial
+
+
+This should get you the latest content:
+panxapi.py -t $TAG -h $HOST -jro "<request><content><upgrade><check/></upgrade></content></request>"
+panxapi.py -t $TAG -h $HOST -jro "<request><content><upgrade><install><version>latest</version></install></upgrade></content></request>"
+
+Sometimes, I have seen that something is stopping the install, so you have to force it:
+panxapi.py -t $TAG -h $HOST -jro "<request><content><upgrade><install><force>yes</force><version>latest</version></install></upgrade></content></request>"
+
+You might also need to upload content for an offline firewall:
+curl -k --form file=@panupv2-all-apps-8667-7805 "https://$HOST/api/?type=import&category=content&key=$APIKEY"
+
+Change a hostname
+panxapi.py -h $HOST -t $TAG -S '<hostname>HOSTNAME</hostname>' "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system"
+
+Commit and don't wait
+panxapi.py -h $HOST -t $TAG -xr -C "<commit>Some Comment</commit>"
+
+Commit and wait
+panxapi.py -h $HOST -t $TAG -xr --sync -C "<commit>Some Comment</commit>"
+
+Upload a software version
+curl -k --form file=@PanOS_400-10.2.3-h2 "https://$HOST/api/?type=import&category=software&key=$APIKEY"
+
+Install a software version
+panxapi.py -t $TAG -h $HOST -xjro "<request><system><software><install><version>10.2.3-h2</version></install></software></system></request>"
+
+Reboot the system
+panxapi.py -t $TAG -h $HOST -Xjro "request restart system"
+
+Activate Auth Codes
+panxapi.py -t $TAG -h $HOST -jro "<request><license><fetch><auth-code>58463968</auth-code></fetch></license></request>"
