@@ -5,47 +5,50 @@ FWA=$1
 FWB=$2
 GROUPID=$3
 TAG=$4
-echo FWA=$1
-echo FWB=$2
-echo GROUPID=$3
-echo TAG=$4
 
+################################################################################################################
 #Get system info
 FWA_INFO=$(panxapi.py -t $TAG -h $FWA -Xjro "show system info")
 FWB_INFO=$(panxapi.py -t $TAG -h $FWB -Xjro "show system info")
 
+################################################################################################################
+FW_FAMILY=$(echo $FWA_INFO | jq -r .system.family)
+if [[ $FW_FAMILY = "400" || $FW_FAMILY = "220" ]]; then
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  # PA 400 or 220 do not have dedicated interfaces, using dataplane interfaces 7 and 8
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  FW_INT_CONFIG="<entry name='ethernet1/7'><ha/></entry><entry name='ethernet1/8'><ha/></entry>"
+  FW_INT_CHOICE="<interface><ha1><port>ethernet1/7</port></ha1><ha2><port>ethernet1/8</port></ha2></interface>"
+
+  panxapi.py -t $TAG -h $FWA -S "$FW_INT_CONFIG" "/config/devices/entry/network/interface/ethernet"
+  panxapi.py -t $TAG -h $FWA -S "$FW_INT_CHOICE" "/config/devices/entry/deviceconfig/high-availability"
+
+  panxapi.py -t $TAG -h $FWB -S "$FW_INT_CONFIG" "/config/devices/entry/network/interface/ethernet"
+  panxapi.py -t $TAG -h $FWB -S "$FW_INT_CHOICE" "/config/devices/entry/deviceconfig/high-availability"
+fi
 
 ################################################################################################################
-# ADD!!!!!!!!!!! config for switching between HA on device with dedicated interfaces - this is for a PA400 where we are using two dataplane interfaces
-# ADD!!!!!!!!!!!
-################################################################################################################
-FWA_FAMILY=$(echo $FWA_INFO | jq -r .system.family)
-FWB_FAMILY=$(echo $FWB_INFO | jq -r .system.family)
+FW_HA_CONFIG="<interface><ha1><encryption><enabled>yes</enabled></encryption><ip-address>169.254.0.1</ip-address><netmask>255.255.255.252</netmask></ha1><ha2><ip-address>169.254.0.9</ip-address><netmask>255.255.255.252</netmask></ha2></interface><group><group-id>$GROUPID</group-id><description>HA</description><peer-ip>169.254.0.2</peer-ip><election-option><device-priority>100</device-priority><heartbeat-backup>yes</heartbeat-backup><preemptive>yes</preemptive><timers><aggressive/></timers></election-option><state-synchronization><transport>ethernet</transport></state-synchronization><mode><active-passive><passive-link-state>auto</passive-link-state></active-passive></mode></group><enabled>yes</enabled>"
+panxapi.py -t $TAG -h $FWA -S "$FW_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
+panxapi.py -t $TAG -h $FWB -S "$FW_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
 
-
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# PA 400 using interface 7 and 8
-FW_INT_CONFIG="<entry name='ethernet1/7'><ha/></entry><entry name='ethernet1/8'><ha/></entry>"
-FW_INT_CHOICE="<interface><ha1><port>ethernet1/7</port></ha1><ha2><port>ethernet1/8</port></ha2></interface>"
-
-panxapi.py -t $TAG -h $FWA -S "$FW_INT_CONFIG" "/config/devices/entry/network/interface/ethernet"
-panxapi.py -t $TAG -h $FWA -S "$FW_INT_CHOICE" "/config/devices/entry/deviceconfig/high-availability"
-
-panxapi.py -t $TAG -h $FWB -S "$FW_INT_CONFIG" "/config/devices/entry/network/interface/ethernet"
-panxapi.py -t $TAG -h $FWB -S "$FW_INT_CHOICE" "/config/devices/entry/deviceconfig/high-availability"
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
+FWB_DIFF_CONFIG="<interface><ha1><ip-address>169.254.0.2</ip-address></ha1><ha2><ip-address>169.254.0.10</ip-address></ha2></interface><group><peer-ip>169.254.0.1</peer-ip><election-option><device-priority>110</device-priority></election-option></group>"
+panxapi.py -t $TAG -h $FWB -S "$FWB_DIFF_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
 
 ################################################################################################################
+if [[ $HA1BACKUP = "TRUE" ]]; then
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  # HA1 Backup if Applicable
+  #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  FW_HA_CONFIG="<interface><ha1-backup><port>ha1-b</port><ip-address>169.254.0.5</ip-address><netmask>255.255.255.252</netmask></ha1-backup></interface><group><peer-ip-backup>169.254.0.6</peer-ip-backup></group>"
+  panxapi.py -t $TAG -h $FWA -S "$FW_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
+  panxapi.py -t $TAG -h $FWB -S "$FW_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
 
-FWA_HA_CONFIG="<interface><ha1><encryption><enabled>yes</enabled></encryption><ip-address>169.254.0.1</ip-address><netmask>255.255.255.252</netmask></ha1><ha2><ip-address>169.254.0.9</ip-address><netmask>255.255.255.252</netmask></ha2></interface><group><group-id>$GROUPID</group-id><description>HA</description><peer-ip>169.254.0.2</peer-ip><election-option><device-priority>100</device-priority><heartbeat-backup>yes</heartbeat-backup><preemptive>yes</preemptive><timers><aggressive/></timers></election-option><state-synchronization><transport>ethernet</transport></state-synchronization><mode><active-passive><passive-link-state>auto</passive-link-state></active-passive></mode></group><enabled>yes</enabled>"
-panxapi.py -t $TAG -h $FWA -S "$FWA_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
-
-FWB_HA_CONFIG="<interface><ha1><encryption><enabled>yes</enabled></encryption><ip-address>169.254.0.2</ip-address><netmask>255.255.255.252</netmask></ha1><ha2><ip-address>169.254.0.10</ip-address><netmask>255.255.255.252</netmask></ha2></interface><group><group-id>$GROUPID</group-id><description>HA</description><peer-ip>169.254.0.1</peer-ip><election-option><device-priority>110</device-priority><heartbeat-backup>yes</heartbeat-backup><preemptive>yes</preemptive><timers><aggressive/></timers></election-option><state-synchronization><transport>ethernet</transport></state-synchronization><mode><active-passive><passive-link-state>auto</passive-link-state></active-passive></mode></group><enabled>yes</enabled>"
-panxapi.py -t $TAG -h $FWB -S "$FWB_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
+  FWB_DIFF_CONFIG="<interface><ha1-backup><ip-address>169.254.0.6</ip-address></ha1-backup></interface><group><peer-ip-backup>169.254.0.5</peer-ip-backup></group>"
+  panxapi.py -t $TAG -h $FWB -S "$FWB_DIFF_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
+fi
 
 ################################################################################################################
-
 #Exchange HAKEY - Need to improve
 FWA_SERIAL=$(echo $FWA_INFO | jq -r .system.serial)
 FWB_SERIAL=$(echo $FWB_INFO | jq -r .system.serial)
@@ -65,3 +68,5 @@ SERVICEPWD=PaloAlto!
 #Commit to device
 panxapi.py -t $TAG -h $FWA -xr -C "<commit></commit>"
 panxapi.py -t $TAG -h $FWB -xr -C "<commit></commit>"
+
+################################################################################################################
