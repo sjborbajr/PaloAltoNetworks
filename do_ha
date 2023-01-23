@@ -1,6 +1,5 @@
 #/bin/bash
 #Usage addto_panorama <fwa> <fwb> <HA group ID> <auth tag>
-
 ################################################################################################################
 FWA=$1
 FWB=$2
@@ -8,7 +7,23 @@ GROUPID=$3
 TAG=$4
 
 ################################################################################################################
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# getting HA encription variables from ~/.panrc
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SFTP=$(cat .panrc | grep -e "SFTP%$TAG=" | head -1 | sed "s/SFTP%$TAG=//")
+SFTPUSER=$(cat .panrc | grep -e "SFTPUSER%$TAG=" | head -1 | sed "s/SFTPUSER%$TAG=//")
+SFTPPASSWORD=$(cat .panrc | grep -e "SFTPPASSWORD%$TAG=" | head -1 | sed "s/SFTPPASSWORD%$TAG=//" | base64 -d)
+SERVICEACCT=$(cat .panrc | grep -e "SERVICEACCT%$TAG=" | head -1 | sed "s/SERVICEACCT%$TAG=//")
+SERVICEPWD=$(cat .panrc | grep -e "SERVICEPWD%$TAG=" | head -1 | sed "s/SERVICEPWD%$TAG=//" | base64 -d)
+if [[ $SFTP = "" ||  $SFTPUSER = "" ||  $SFTPPASSWORD = "" ||  $SERVICEACCT = "" ||  $SERVICEPWD = "" ]]; then
+  echo use store_expect to set variables, exiting
+  exit 1
+fi
+
+################################################################################################################
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #Get system info
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 FWA_INFO=$(panxapi.py -t $TAG -h $FWA -Xjro "show system info")
 FWB_INFO=$(panxapi.py -t $TAG -h $FWB -Xjro "show system info")
 
@@ -60,18 +75,15 @@ fi
 FWA_SERIAL=$(echo $FWA_INFO | jq -r .system.serial)
 FWB_SERIAL=$(echo $FWB_INFO | jq -r .system.serial)
 
-SFTP=$(cat .panrc | grep -e "SFTP%$TAG=" | head -1 | sed "s/SFTP%$TAG=//")
-SFTPUSER=$(cat .panrc | grep -e "SFTPUSER%$TAG=" | head -1 | sed "s/SFTPUSER%$TAG=//")
-SFTPPASSWORD=$(cat .panrc | grep -e "SFTPPASSWORD%$TAG=" | head -1 | sed "s/SFTPPASSWORD%$TAG=//" | base64 -d)
-SERVICEACCT=$(cat .panrc | grep -e "SERVICEACCT%$TAG=" | head -1 | sed "s/SERVICEACCT%$TAG=//")
-SERVICEPWD=$(cat .panrc | grep -e "SERVICEPWD%$TAG=" | head -1 | sed "s/SERVICEPWD%$TAG=//" | base64 -d)
-
 ./exporthakey.expect $FWA $SERVICEACCT $SERVICEPWD $SFTP $SFTPUSER $SFTPPASSWORD $FWA_SERIAL
 ./exporthakey.expect $FWB $SERVICEACCT $SERVICEPWD $SFTP $SFTPUSER $SFTPPASSWORD $FWB_SERIAL
 ./importhakey.expect $FWA $SERVICEACCT $SERVICEPWD $SFTP $SFTPUSER $SFTPPASSWORD $FWB_SERIAL
 ./importhakey.expect $FWB $SERVICEACCT $SERVICEPWD $SFTP $SFTPUSER $SFTPPASSWORD $FWA_SERIAL
 
-#Commit to device
+################################################################################################################
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Commit to device
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 panxapi.py -t $TAG -h $FWA -xr -C "<commit></commit>"
 panxapi.py -t $TAG -h $FWB -xr -C "<commit></commit>"
 
