@@ -5,18 +5,25 @@ HOST=$1
 PANORAMA=$2
 TAG=$3
 
+################################################################################################################
 #Get serial Number
+Echo Getting system Serial Number
 FW_SERIAL=$(panxapi.py -t $TAG -h $HOST -Xjro "show system info" | jq -r .system.serial)
 
+################################################################################################################
 #Add Serial number and get authkey
-panxapi.py -t $TAG -h $PANORAMA -S "<entry name='$FW_SERIAL'/>" "/config/mgt-config/devices"
+Adding Serial to Panorama and getting join key
+panxapi.py -t $TAG -h $PANORAMA -S "<entry name='$FW_SERIAL'/>" "/config/mgt-config/devices" >> /dev/null 2&>1
 
 #Generate Key
-panxapi.py -t $TAG -h $PANORAMA -jro "<request><authkey><add><name>$FW_SERIAL-key</name><count>1</count><lifetime>60</lifetime></add></authkey></request>"
+panxapi.py -t $TAG -h $PANORAMA -jro "<request><authkey><add><name>$FW_SERIAL-key</name><count>1</count><lifetime>60</lifetime></add></authkey></request>" >> /dev/null 2&>1
 #Get Key
-AUTHKEY=$(panxapi.py -t $TAG -h $PANORAMA -jro "<request><authkey><list>$FW_SERIAL-key</list></authkey></request>" | jq -r .authkey.entry[].key )
-panxapi.py -t $TAG -h $PANORAMA --sync -xr -C "<commit></commit>"
+AUTHKEY=$(panxapi.py -t $TAG -h $PANORAMA -jro "<request><authkey><list>$FW_SERIAL-key</list></authkey></request>" | jq -r .authkey.entry[].key ) >> /dev/null 2&>1
+panxapi.py -t $TAG -h $PANORAMA --sync -xr -C "<commit></commit>" >> /dev/null 2&>1
 
+################################################################################################################
 #Add device
-panxapi.py -t $TAG -h $HOST -S "<panorama-server>$PANORAMA</panorama-server>" "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system/panorama/local-panorama"
-panxapi.py -t $TAG -h $HOST -xr -C "<commit></commit>"
+echo adding panorama ip+key to firewall and commiting
+panxapi.py -t $TAG -h $HOST -jro "<request><authkey><set>$AUTHKEY</set></authkey></request>" >> /dev/null 2&>1
+panxapi.py -t $TAG -h $HOST -S "<panorama-server>$PANORAMA</panorama-server>" "/config/devices/entry[@name='localhost.localdomain']/deviceconfig/system/panorama/local-panorama" >> /dev/null 2&>1
+panxapi.py -t $TAG -h $HOST -xr -C "<commit></commit>" >> /dev/null 2&>1
