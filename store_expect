@@ -1,0 +1,15 @@
+#!/bin/bash
+read -p 'TAG: ' TAG
+read -p 'sftp server: ' SFTP
+read -p 'sftp user: ' SFTPUSER
+read -sp 'sftp password: ' SFTPPASSWORD && echo ''
+SFTPPASSWORD=$( echo $SFTPPASSWORD | base64 )
+read -p 'pan user: ' SERVICEACCT
+read -sp 'pan password: ' SERVICEACCTPWD && echo ''
+SERVICEACCTPWD=$( echo $SERVICEACCTPWD | base64 )
+
+echo SFTP%$TAG=$SFTP >> ~/.panrc
+echo SFTPUSER%$TAG=$SFTPUSER >> ~/.panrc
+echo SFTPPASSWORD%$TAG=$SFTPPASSWORD >> ~/.panrc
+echo SERVICEACCT%$TAG=$SERVICEACCT >> ~/.panrc
+echo SERVICEACCTPWD%$TAG=$SERVICEACCTPWD >> ~/.panrc
