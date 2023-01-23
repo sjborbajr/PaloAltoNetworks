@@ -1,6 +1,7 @@
 #/bin/bash
 #Usage addto_panorama <fwa> <fwb> <HA group ID> <auth tag>
 
+################################################################################################################
 FWA=$1
 FWB=$2
 GROUPID=$3
@@ -28,6 +29,9 @@ if [[ $FW_FAMILY = "400" || $FW_FAMILY = "220" ]]; then
 fi
 
 ################################################################################################################
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Main Configuration Section
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 FW_HA_CONFIG="<interface><ha1><encryption><enabled>yes</enabled></encryption><ip-address>169.254.0.1</ip-address><netmask>255.255.255.252</netmask></ha1><ha2><ip-address>169.254.0.9</ip-address><netmask>255.255.255.252</netmask></ha2></interface><group><group-id>$GROUPID</group-id><description>HA</description><peer-ip>169.254.0.2</peer-ip><election-option><device-priority>100</device-priority><heartbeat-backup>yes</heartbeat-backup><preemptive>yes</preemptive><timers><aggressive/></timers></election-option><state-synchronization><transport>ethernet</transport></state-synchronization><mode><active-passive><passive-link-state>auto</passive-link-state></active-passive></mode></group><enabled>yes</enabled>"
 panxapi.py -t $TAG -h $FWA -S "$FW_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
 panxapi.py -t $TAG -h $FWB -S "$FW_HA_CONFIG" "/config/devices/entry/deviceconfig/high-availability"
@@ -49,16 +53,18 @@ if [[ $HA1BACKUP = "TRUE" ]]; then
 fi
 
 ################################################################################################################
-#Exchange HAKEY - Need to improve
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# HA Key excange
+# using ssh/expect script and ~/.panrc to store data, use store_expect to set variables
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 FWA_SERIAL=$(echo $FWA_INFO | jq -r .system.serial)
 FWB_SERIAL=$(echo $FWB_INFO | jq -r .system.serial)
 
-SFTP="192.0.2.1"
-SFTPUSER="sftpuser"
-SFTPPASSWORD="Password1"
-
-SERVICEACCT=admin
-SERVICEPWD=PaloAlto!
+SFTP=$(cat .panrc | grep -e "SFTP%$TAG=" | head -1 | sed "s/SFTP%$TAG=//")
+SFTPUSER=$(cat .panrc | grep -e "SFTPUSER%$TAG=" | head -1 | sed "s/SFTPUSER%$TAG=//")
+SFTPPASSWORD=$(cat .panrc | grep -e "SFTPPASSWORD%$TAG=" | head -1 | sed "s/SFTPPASSWORD%$TAG=//" | base64 -d)
+SERVICEACCT=$(cat .panrc | grep -e "SERVICEACCT%$TAG=" | head -1 | sed "s/SERVICEACCT%$TAG=//")
+SERVICEPWD=$(cat .panrc | grep -e "SERVICEPWD%$TAG=" | head -1 | sed "s/SERVICEPWD%$TAG=//" | base64 -d)
 
 ./exporthakey.expect $FWA $SERVICEACCT $SERVICEPWD $SFTP $SFTPUSER $SFTPPASSWORD $FWA_SERIAL
 ./exporthakey.expect $FWB $SERVICEACCT $SERVICEPWD $SFTP $SFTPUSER $SFTPPASSWORD $FWB_SERIAL
