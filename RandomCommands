@@ -34,4 +34,4 @@ Reboot the system
 panxapi.py -t $TAG -h $HOST -Xjro "request restart system"
 
 Activate Auth Codes
-panxapi.py -t $TAG -h $HOST -jro "<request><license><fetch><auth-code>58463968</auth-code></fetch></license></request>"
+panxapi.py -t $TAG -h $HOST -jro "<request><license><fetch><auth-code>######</auth-code></fetch></license></request>"
