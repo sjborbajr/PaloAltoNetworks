@@ -1,0 +1,9 @@
+delete deviceconfig system update-schedule
+delete rulebase security rules rule1
+delete network virtual-router default
+delete network qos profile default
+delete network virtual-wire default-vwire
+delete zone trust
+delete zone untrust
+delete network interface ethernet ethernet1/1
+delete network interface ethernet ethernet1/2
