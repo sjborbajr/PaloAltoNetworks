@@ -1,5 +1,5 @@
 #/bin/bash
-#Usage addto_panorama <fwa> <fwb> <HA group ID> <auth tag> <bool ha1-backup>
+#Usage do_ha <fwa> <fwb> <HA group ID> <auth tag> <bool ha1-backup>
 ################################################################################################################
 FWA=$1
 FWB=$2
