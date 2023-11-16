@@ -24,7 +24,7 @@ $Config = '<preemptive>yes</preemptive>'
 $XPath = '/config/devices/entry/deviceconfig/high-availability/group/election-option'
 #$Auth = (Get-PANRCTagData).Auth
 #$Address = (Get-PANRCTagData).Addresses[0]
-for ($ix = 0; $ix -lt $SetPriority.count; $ix++) {
+for ($ix = 0; $ix -lt $SetConfig.count; $ix++) {
   $Result = Set-PANConfig -Data ($Config+'&target='+$SetConfig[$ix].serial) -XPath $XPath
   if ($Result.status -eq 'success') {
     $Result = Invoke-RestMethod -URI ("https://"+$Address+"/api/?type=commit&cmd=<commit></commit>&"+$Auth+'&target='+$SetConfig[$ix].serial)
