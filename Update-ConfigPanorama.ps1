@@ -2,7 +2,7 @@
 Import-Module pan-power
 
 #Gather Data
-$Devices = (Invoke-PANOperation -Command "<show><devices><connected></connected></devices></show>").result.devices.entry
+$Devices = (Invoke-PANOperation -SkipCertificateCheck -Command "<show><devices><connected></connected></devices></show>").result.devices.entry
 for ($ix = 0; $ix -lt $Devices.count; $ix++) {
   $HA = Invoke-PANOperation -SkipCertificateCheck -Command ("<show><high-availability><state/></high-availability></show>&target="+$Devices[$ix].serial)
   Add-Member -InputObject $Devices[$ix] -NotePropertyMembers @{
@@ -20,11 +20,11 @@ $SetConfig = $Devices | Out-GridView -OutputMode Multiple
 #$SetConfig | Out-GridView
 
 #Do the Update
-$Config = '<preemptive>yes</preemptive>'
+$Config = '<preemptive>yes</preemptive><device-priority>90</device-priority>'
 $XPath = '/config/devices/entry/deviceconfig/high-availability/group/election-option'
 #$Auth = (Get-PANRCTagData).Auth
 #$Address = (Get-PANRCTagData).Addresses[0]
-for ($ix = 0; $ix -lt $SetConfig.count; $ix++) {
+for ($ix = 0; $ix -lt $SetConfig.Count; $ix++) {
   $Result = Set-PANConfig -Data ($Config+'&target='+$SetConfig[$ix].serial) -XPath $XPath
   if ($Result.status -eq 'success') {
     $Result = Invoke-RestMethod -URI ("https://"+$Address+"/api/?type=commit&cmd=<commit></commit>&"+$Auth+'&target='+$SetConfig[$ix].serial)
