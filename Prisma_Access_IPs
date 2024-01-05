@@ -1,0 +1,10 @@
+$Options = @{
+  URI = "https://api.prod.datapath.prismaaccess.com/getPrismaAccessIP/v2"
+  Body = '{ "serviceType": "all", "addrType": "all", "location": "all" }'
+  Headers = @{
+              'header-api-key'="<REDACTED>"
+             }
+  Method = "POST"
+}
+$Response = Invoke-WebRequest @Options
+$Data = $Response.Content | ConvertFrom-Json
