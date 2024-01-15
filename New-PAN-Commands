@@ -1,7 +1,20 @@
+-----------------------------------------------------------------------
 set deviceconfig system ip-address 192.0.2.251 netmask 255.255.255.0 default-gateway 192.0.2.254 dns-setting servers primary 8.8.8.8 secondary 8.8.4.4
   -- or --
 set deviceconfig system type dhcp-client accept-dhcp-domain no accept-dhcp-hostname no send-client-id no send-hostname no
+-----------------------------------------------------------------------
+delete deviceconfig system update-schedule
+delete rulebase security rules rule1
+delete network virtual-router default
+delete network qos profile default
+delete network virtual-wire default-vwire
+delete zone trust
+delete zone untrust
+delete network interface ethernet ethernet1/1
+delete network interface ethernet ethernet1/2
 
+commit
+-----------------------------------------------------------------------
 
 request license fetch
 request content upgrade check
@@ -12,14 +25,5 @@ request system software check
 request system software download version x.x.x
 request system software install version x.x.x
 show jobs id x
-reboot
+request restart system
 
-delete deviceconfig system update-schedule
-delete rulebase security rules rule1
-delete network virtual-router default
-delete network qos profile default
-delete network virtual-wire default-vwire
-delete zone trust
-delete zone untrust
-delete network interface ethernet ethernet1/1
-delete network interface ethernet ethernet1/2
