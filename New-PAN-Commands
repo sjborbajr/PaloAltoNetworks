@@ -27,3 +27,10 @@ request system software install version x.x.x
 show jobs id x
 request restart system
 
+-----------------------------------------------------------------------
+show system info | match serial
+<go to Panorama, add, get authkey>
+request authkey set 2:<AUTHKEY FROM PANORAMA>
+configure
+set deviceconfig system panorama local-panorama panorama-server 192.0.2.100
+commit
