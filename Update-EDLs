@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#Requires panxapi.py and jq
+#apt install pip3 jq
+#pip3 install pan-python
+
+#run this to connect to Panorama
+#panxapi.py -t '' -h PANORAMA -l USERNAME -k > .panrc
+
+#This needs to get the info from git about which file was updated
+REPO=$1
+FILENAME=$2
+GITADDRESS=$3
+
+EXTERNAL_LISTS=$(panxapi.py -js "/config/shared/external-list" | jq -r '.response.result."external-list".entry')
+
+EXTERNAL_LIST_IP=$(echo $EXTERNAL_LISTS | jq --arg URL "https://$GITADDRESS/$REPO/-/raw/main/$FILENAME" -r '.[] | select(.type.ip.url==$URL)')
+EXTERNAL_LIST_URL=$(echo $EXTERNAL_LISTS | jq --arg URL "https://$GITADDRESS/$REPO/-/raw/main/$FILENAME" -r '.[] | select(.type.url.url==$URL)')
+if [ ! -z "${EXTERNAL_LIST_IP}" ]; then
+  TYPE=ip
+  NAME=$(echo $EXTERNAL_LIST_IP | jq -r .name)
+elif [ ! -z "${EXTERNAL_LIST_URL}" ]; then
+  TYPE=url
+  NAME=$(echo $EXTERNAL_LIST_URL | jq -r .name)
+else
+  TYPE=MISSING
+fi
+
+if [ $TYPE != "MISSING" ];then
+  #Get list of currently connected firewalls
+  FIREWALLS=$(panxapi.py -jro "<show><devices><connected></connected></devices></show>" | jq -r .devices.entry)
+
+  #Iterate through each firewall
+  echo $FIREWALLS | jq -r '.[].serial' | while read -r FIREWALL; do 
+    panxapi.py -jro "<request><system><external-list><refresh><type><$TYPE><name>$NAME</name></$TYPE></type></refresh></external-list></system></request>" --serial $FIREWALL
+  done
+fi
