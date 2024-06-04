@@ -1,0 +1,139 @@
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=.85">
+<meta http-equiv="pragma" content="no-cache">
+<title>Web Page Filtered</title>
+<link rel="stylesheet" href="css/latofonts.css">
+<style>
+ body {
+  background-color: #e8ebeb;
+  font-family: Lato, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  color: #070808;
+ }
+ a:link {
+  color: #0ba4e8;
+ }
+ b, strong {
+  font-weight: 500;
+ }
+ p {
+  line-height: 1.2em;
+ }
+ button {
+  overflow: visible;
+ }
+ button, input, optgroup, select, textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+ }
+ .center {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+ }
+ #dError, .msg {
+  color: #d94949;
+  margin: 20px 0;
+ }
+ fieldset .msg {
+  margin: 0;
+ }
+ #content {
+  padding-top: 100px;
+ }
+ #content img {
+  display: block;
+  margin: auto;
+ }
+ #content h1 {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 36px;
+  line-height: 43px;
+  text-align: center;
+  letter-spacing: 0.1px;
+  color: #070808;
+  margin: 10px auto 8px;
+ }
+ #content > p {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 640px;
+  font-size: 14px;
+  line-height: 20px;
+ }
+ .response {
+  background-color: #fff;
+  color: #5a636b;
+  margin: 24px auto 0;
+  padding: 20px;
+  font-size: 16px;
+  width: 800px;
+  border: 1px solid #c8cbce;
+  box-sizing: border-box;
+  border-radius: 8px;
+ }
+ .response p {
+  margin: 0 0 1em;
+ }
+ .response p:last-child {
+  margin: 0;
+ }
+ .response b {
+  color: #070808;
+ }
+ .response .msg b {
+  color: #d94949;
+ }
+ .response form td, .response form input {
+  font-size: 1.1em;
+  font-weight: bold;
+ }
+ .loading {
+  margin: 2em auto 1em;
+ }
+</style>
+</head>
+<body>
+ <div id="content" class="container">
+  <img src="data:image/png;base64,<BASE64_GOES_HERE>" alt="Error">
+  <div id="hdr"><h1>placeholder</h1></div>
+  <p id="warningText">placeholder</p>
+  <script type="text/javascript">
+   var cat = "<category/>";
+   var pre = "The web page you are trying to visit has been blocked in accordance with company policy. If you require continued access to this site, click the link to <a href='mailto:helpdesk@steveborba.com?";
+   var post = "'>send an email with your request</a>.";
+   switch(cat) { 
+    case "Storage-Sites":
+    case "online-storage-and-backup":
+     document.getElementById("hdr").innerHTML = "<h1>UNAUTHORIZED USE OF CLOUD STORAGE</h1>";
+     document.getElementById("warningText").innerHTML = pre+"subject=Exception%20Request%20-%20Cloud%20Storage"+post;
+     break;
+    case "Webmail-Sites":
+    case "web-based-email":
+     document.getElementById("hdr").innerHTML = "<h1>Request - Webmail Access</h1>";
+     document.getElementById("warningText").innerHTML = pre+"subject=Exception%20Request%20-%20Webmail%20Access"+post;
+     break;
+    default:
+     document.getElementById("hdr").innerHTML = "<h1>Webpage blocked</h1>";
+     document.getElementById("warningText").innerHTML = pre+"subject=Exception%20Request%20-%20"+cat+post;
+   }
+  </script>
+  <div class="response">
+   <p><b>User:</b> <user/></p>
+   <p><b>URL:</b> <url/></p>
+   <p><b>Category:</b> <category/></p>
+   <hr>
+   <span id="continueText">Clicking Continue will give temporary access to this category.</span>
+   <div id="formdiv"><pan_form/></div>
+   <a href="#" onclick="history.back();return false;">Return to previous page</a>
+  </div>
+ </div>
+</body>
+</html>
