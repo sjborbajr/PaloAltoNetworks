@@ -1,4 +1,7 @@
 -----------------------------------------------------------------------
+# may need to stop ztp
+set system ztp disable
+-----------------------------------------------------------------------
 set deviceconfig system ip-address 192.0.2.251 netmask 255.255.255.0 default-gateway 192.0.2.254 dns-setting servers primary 8.8.8.8 secondary 8.8.4.4
   -- or --
 set deviceconfig system type dhcp-client accept-dhcp-domain no accept-dhcp-hostname no send-client-id no send-hostname no
