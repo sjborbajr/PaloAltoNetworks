@@ -1,0 +1,65 @@
+#!/bin/bash
+PANMGMTIP=192.168.7.248
+key=$(grep api_key ~/.panrc | head -n 1 | sed -r 's/=/\t/' | awk '{print $2}')
+EMAIL=steve@steveborba.com
+
+/usr/local/bin/panxapi.py -h $PANMGMTIP -K $key -S '<disabled>no</disabled>' "/config/devices/entry/vsys/entry/rulebase/security/rules/entry[@name='Certbot to Main']"
+/usr/local/bin/panxapi.py -h $PANMGMTIP -K $key -S '<disabled>no</disabled>' "/config/devices/entry/vsys/entry/rulebase/nat/rules/entry[@name='Certbot to Main']"
+/usr/local/bin/panxapi.py -h $PANMGMTIP -K $key -C '' --sync
+
+##########################################################
+#######  *.steveborba.com
+###########################################################
+           #*************  Get Cert
+certbot --non-interactive --agree-tos --email $EMAIL certonly --reuse-key --preferred-challenges dns --authenticator dns-standalone -d *.steveborba.com,steveborba.com
+           #*************  Copy Cert to PAN
+/usr/bin/openssl pkcs12 -export -out /root/full.pfx -inkey /etc/letsencrypt/live/steveborba.com/privkey.pem -in /etc/letsencrypt/live/steveborba.com/cert.pem -certfile /etc/letsencrypt/live/steveborba.com/chain.pem -passout pass:1wDbnY5DsH8CwKfOa
+/usr/bin/curl -k --form file=@/root/full.pfx "https://$PANMGMTIP/api/?type=import&category=certificate&certificate-name=star.steveborba.com&format=pkcs12&passphrase=1wDbnY5DsH8CwKfOa&key=$key"
+/usr/bin/curl -k --form file=@/root/full.pfx "https://$PANMGMTIP/api/?type=import&category=private-key&certificate-name=star.steveborba.com&format=pkcs12&passphrase=1wDbnY5DsH8CwKfOa&key=$key"
+rm /root/full.pfx
+           #*************  Copy Cert to Wordpress
+scp /etc/letsencrypt/live/steveborba.com/* 192.168.79.2:/etc/letsencrypt/live/star.steveborba.com/
+
+##########################################################
+#######  *.borba.us
+###########################################################
+           #*************  Get Cert
+certbot --non-interactive --agree-tos --email $EMAIL certonly --reuse-key --preferred-challenges dns --authenticator dns-standalone -d *.borba.us,borba.us
+           #*************  Copy Cert to PAN
+/usr/bin/openssl pkcs12 -export -out /root/full.pfx -inkey /etc/letsencrypt/live/borba.us/privkey.pem -in /etc/letsencrypt/live/borba.us/cert.pem -certfile /etc/letsencrypt/live/borba.us/chain.pem -passout pass:1wDbnY5DsH8CwKfOa
+/usr/bin/curl -k --form file=@/root/full.pfx "https://$PANMGMTIP/api/?type=import&category=certificate&certificate-name=star.borba.us&format=pkcs12&passphrase=1wDbnY5DsH8CwKfOa&key=$key"
+/usr/bin/curl -k --form file=@/root/full.pfx "https://$PANMGMTIP/api/?type=import&category=private-key&certificate-name=star.borba.us&format=pkcs12&passphrase=1wDbnY5DsH8CwKfOa&key=$key"
+rm /root/full.pfx
+           #*************  Copy Cert to Wordpress
+scp /etc/letsencrypt/live/borba.us/* 192.168.79.2:/etc/letsencrypt/live/star.borba.us/
+
+##########################################################
+#######  www.<myfreindsblog>.com
+###########################################################
+           #*************  Get Cert
+#certbot --non-interactive --agree-tos --email $EMAIL certonly --preferred-challenges dns --authenticator dns-standalone -d *.<myfreindsblog>.com,<myfreindsblog>.com
+certbot certonly -d www.<myfreindsblog>.com,<myfreindsblog>.com -m $EMAIL --reuse-key --standalone -n --agree-tos --force-renew
+           #*************  Copy Cert to PAN
+/usr/bin/openssl pkcs12 -export -out /root/full.pfx -inkey /etc/letsencrypt/live/www.<myfreindsblog>.com/privkey.pem -in /etc/letsencrypt/live/www.<myfreindsblog>.com/cert.pem -certfile /etc/letsencrypt/live/www.<myfreindsblog>.com/chain.pem -passout pass:1wDbnY5DsH8CwKfOa
+/usr/bin/curl -k --form file=@/root/full.pfx "https://$PANMGMTIP/api/?type=import&category=certificate&certificate-name=www.<myfreindsblog>.com&format=pkcs12&passphrase=1wDbnY5DsH8CwKfOa&key=$key"
+/usr/bin/curl -k --form file=@/root/full.pfx "https://$PANMGMTIP/api/?type=import&category=private-key&certificate-name=www.<myfreindsblog>.com&format=pkcs12&passphrase=1wDbnY5DsH8CwKfOa&key=$key"
+rm /root/full.pfx
+           #*************  Copy Cert to Wordpress
+scp /etc/letsencrypt/live/www.<myfreindsblog>.com/* 192.168.79.2:/etc/letsencrypt/live/<myfreindsblog>.com/
+
+##########################################################
+#######  Clean up/Activate
+###########################################################
+/usr/local/bin/panxapi.py -h $PANMGMTIP -K $key -S '<disabled>yes</disabled>' "/config/devices/entry/vsys/entry/rulebase/security/rules/entry[@name='Certbot to Main']"
+/usr/local/bin/panxapi.py -h $PANMGMTIP -K $key -S '<disabled>yes</disabled>' "/config/devices/entry/vsys/entry/rulebase/nat/rules/entry[@name='Certbot to Main']"
+/usr/local/bin/panxapi.py -h $PANMGMTIP -K $key -C '' --sync
+ssh 192.168.79.2 systemctl restart apache2
+
+
+############# More stuff for mail server - not used right now
+#scp /etc/letsencrypt/live/$FQDN3/fullchain.pem 192.168.79.18:/etc/ssl/certs/iRedMail.crt
+#scp /etc/letsencrypt/live/$FQDN3/privkey.pem 192.168.79.18:/etc/ssl/private/iRedMail.key
+#ssh 192.168.79.18 chmod +r /etc/ssl/private/iRedMail.key
+#ssh 192.168.79.18 systemctl restart postfix
+#ssh 192.168.79.18 systemctl restart dovecot
+#ssh 192.168.79.18 systemctl restart nginx
