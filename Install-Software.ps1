@@ -38,7 +38,7 @@ for ($ix = 0; $ix -lt $Sync.count; $ix++) {
 
 ##################################
 #Check for software and download
-#Remember to download base
+#Remember to download base if needed
 for ($ix = 0; $ix -lt $Devices.count; $ix++) {
   $Result = Invoke-PANOperation -Command ("<request><system><software><check/></software></system></request>&target="+$Devices[$ix].serial)
   if ($Result.status -eq 'success') {
