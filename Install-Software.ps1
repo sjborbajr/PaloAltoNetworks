@@ -1,6 +1,7 @@
 ﻿Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 #Install-Module 'pan-power' -Scope CurrentUser
 Import-Module pan-power
+#Invoke-PANKeyGen -Addresses "panorama" -SkipCertificateCheck
 
 #Gather Data
 $Devices = (Invoke-PANOperation -Command "<show><devices><connected></connected></devices></show>").result.devices.entry
