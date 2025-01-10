@@ -37,3 +37,48 @@ request authkey set 2:<AUTHKEY FROM PANORAMA>
 configure
 set deviceconfig system panorama local-panorama panorama-server 192.0.2.100
 commit
+
+
+-----------------------------------------------------------------------
+set deviceconfig high-availability interface ha1 ip-address 169.254.0.1
+set deviceconfig high-availability interface ha1 netmask 255.255.255.252
+set deviceconfig high-availability interface ha1 encryption enabled yes
+set deviceconfig high-availability interface ha1-backup port ha1-b
+set deviceconfig high-availability interface ha1-backup ip-address 169.254.0.5
+set deviceconfig high-availability interface ha1-backup netmask 255.255.255.252
+set deviceconfig high-availability interface ha2 ip-address 169.254.0.9
+set deviceconfig high-availability interface ha2 netmask 255.255.255.252
+set deviceconfig high-availability interface ha2-backup
+set deviceconfig high-availability interface ha3
+set deviceconfig high-availability group group-id 19
+set deviceconfig high-availability group peer-ip 169.254.0.2
+set deviceconfig high-availability group peer-ip-backup 169.254.0.6
+set deviceconfig high-availability group mode active-passive passive-link-state auto
+set deviceconfig high-availability group election-option device-priority 90
+set deviceconfig high-availability group election-option heartbeat-backup yes
+set deviceconfig high-availability group election-option preemptive yes
+set deviceconfig high-availability group election-option timers recommended
+set deviceconfig high-availability group state-synchronization ha2-keep-alive enabled yes
+set deviceconfig high-availability enabled yes
+-----------------------------------------------------------------------
+set deviceconfig high-availability interface ha1 ip-address 169.254.0.2
+set deviceconfig high-availability interface ha1 netmask 255.255.255.252
+set deviceconfig high-availability interface ha1 encryption enabled yes
+set deviceconfig high-availability interface ha1-backup port ha1-b
+set deviceconfig high-availability interface ha1-backup netmask 255.255.255.252
+set deviceconfig high-availability interface ha1-backup ip-address 169.254.0.6
+set deviceconfig high-availability interface ha2 ip-address 169.254.0.10
+set deviceconfig high-availability interface ha2 netmask 255.255.255.252
+set deviceconfig high-availability interface ha2-backup
+set deviceconfig high-availability interface ha3
+set deviceconfig high-availability group group-id 19
+set deviceconfig high-availability group peer-ip 169.254.0.1
+set deviceconfig high-availability group peer-ip-backup 169.254.0.5
+set deviceconfig high-availability group mode active-passive passive-link-state auto
+set deviceconfig high-availability group election-option device-priority 110
+set deviceconfig high-availability group election-option heartbeat-backup yes
+set deviceconfig high-availability group election-option preemptive yes
+set deviceconfig high-availability group election-option timers recommended
+set deviceconfig high-availability group state-synchronization ha2-keep-alive enabled yes
+set deviceconfig high-availability enabled yes
+-----------------------------------------------------------------------
