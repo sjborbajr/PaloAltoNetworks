@@ -15,10 +15,7 @@ delete zone trust
 delete zone untrust
 delete network interface ethernet ethernet1/1
 delete network interface ethernet ethernet1/2
-
-commit
 -----------------------------------------------------------------------
-
 request license fetch
 request content upgrade check
 request content upgrade download latest
@@ -29,16 +26,12 @@ request system software download version x.x.x
 request system software install version x.x.x
 show jobs id x
 request restart system
-
 -----------------------------------------------------------------------
 show system info | match serial
 <go to Panorama, add, get authkey>
 request authkey set 2:<AUTHKEY FROM PANORAMA>
 configure
 set deviceconfig system panorama local-panorama panorama-server 192.0.2.100
-commit
-
-
 -----------------------------------------------------------------------
 set deviceconfig high-availability interface ha1 ip-address 169.254.0.1
 set deviceconfig high-availability interface ha1 netmask 255.255.255.252
