@@ -14,5 +14,6 @@ $firewalls = $firewalls | ? { $_.ha.state -ne 'passive' }
 for ($ix = 0; $ix -lt $firewalls.count; $ix++) {
   Write-Progress -id 1 -PercentComplete (100*($ix/$firewalls.count)) -Activity ("Getting "+$firewalls[$ix].hostname)
   $Routes = Invoke-PANOperation -SkipCertificateCheck -Command "<show><routing><route/></routing></show>" -Target $firewalls[$ix].serial
+  $Routes.result.entry | Export-Csv -NoTypeInformation -path ($firewalls[$ix].hostname+".csv")
   $Routes.result.OuterXml > ($firewalls[$ix].hostname+".xml")
 }
