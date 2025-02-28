@@ -1,4 +1,4 @@
-If ((Get-ExecutionPolicy) -ne 'Bypass' -and (Get-ExecutionPolicy) -ne 'Unrestricted') {Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force}
+﻿If ((Get-ExecutionPolicy) -ne 'Bypass' -and (Get-ExecutionPolicy) -ne 'Unrestricted') {Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force}
 Import-Module pan-power
 
 $Devices = (Invoke-PANOperation -Command "<show><devices><connected></connected></devices></show>" -SkipCertificateCheck).result.devices.entry
