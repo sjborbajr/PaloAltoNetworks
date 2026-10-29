@@ -56,7 +56,7 @@ function Wait-PanJob {
     $statusResp = Invoke-RestMethod -Uri $statusUri -Method Get -SkipCertificateCheck
     $status = $statusResp.response.result.job.status
     Write-Log "  Job $JobId status: $status"
-  } while ($status -ne 'FIN')
+  } while ($status.Length -gt 1 -and $status -ne 'FIN')
 
   $result = $statusResp.response.result.job.result
   if ($result -ne 'OK') { throw "Job $JobId finished with result: $result" }
